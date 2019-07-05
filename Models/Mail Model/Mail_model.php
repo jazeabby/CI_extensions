@@ -148,7 +148,7 @@ class Mail_model extends CI_Model {
         $this->_mail_to     =	"admin@admin.com";
         $this->_admin_email =	"admin@admin.com";
         
-        //by default value = Mobi-Hub
+        //by default value
 		$this->_site_name   =	"Website";
         $this->_subject     =	"Important: Mail from ".$this->_site_name;
 
