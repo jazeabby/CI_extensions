@@ -33,4 +33,5 @@ These modules will contain an independent MVC to be integrated directly
 
 ## Models
 -   E-Mail Model
+-   Helper Model
 
