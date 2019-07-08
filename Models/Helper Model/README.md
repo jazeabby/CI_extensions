@@ -1,67 +1,130 @@
 # Models
 
 
-## E-Mail Model
-This model can be included and used to send emails directly with certain built-in functions and configuration
+## Helper Model
+This model can be included and used for multiple purposes in relation with database with certain built-in functions and a small configuration
 ---
 ### Usage/Installation
 1. Just include the file in `applications/models/`
-2. Load the Model using `$this->load->model('Email_model');`
+2. Load the Model using `$this->load->model('Helper_model');`
+
+---
+### Requirements
+1. In order to completely use this model, configure a `config` table in database for settings
+2. If you want to use aws ses_mail services, include the `aws_helper.php` which is in helpers of this repo.
 
 ---
 ### Configuration
-Basic Settings required for sending email:
-- Name
-- From Email
-- To Email
-- Message
-- Subject
-
 Every setting in the configuration can be overided.
-These are the public variables:
--   `$_mail_from` - From which email the mail is going; default *jazeabby@gmail.com*
--   `$_mail_to` - To whom the mail is going; default *jazeabby@gmail.com*
--   `$_site_name` - Shows from where the mail came (appended to most subjects); default *Website*
--   `$_subject` - Subject of the mail; default *Important: Mail from $this->_site_name*
--   `$_data` - The data to be sent in Mail View template; default *array()*
--   `$_documents` - Variable to be set if documents are available; default *NULL*
--   `$_view` - Mail View template which contains all the message; default *views/email/default_mail_template*
--   `$_debug` - Set this value TRUE to enable debugging, email will be sent to `$_debug_mail_id` below; default *false*
--   `$_hard_debug` - Set this value TRUE to enable debugging, block the emails too; default *false*
--   `$_testing` - This value is being set in Testing Controller for manual testing of emails in admin panel. Refer to `Email Management` in Developer Section; default *false*
--   `$_debug_mail_id` - Set this value according to your email id to test debugging in mail; default *jazeabby@gmail.com*
--   `$_user_table` - table from where users email is to be taken; default *users*
--	`$_user_id_column` - the column of above table which is the primary key; default *user_id*
--	`$_user_email_column`	=	the column of `email` which is to be taken; default *user_email*
--   `$_admin_email` - default email of admin; default *admin@admin.com*
--   `$_admin_table` - table from where users email is to be taken; default *admin*
--	`$_admin_id_column` - the column of above table which is the primary key; default *id*
--	`$_admin_email_column`	=	the column of `email` which is to be taken; default *email*
+These are the protected variables:
+-   `$config_table` - the name of config table in database; default: *config*
+-   `$resize_image` - If you want to resize image while uploading, set it as true; default: *true*
+-   `$resize_h` - resize height after uploading image, $resize_image must be true; default: *1000*
+-   `$resize_w` - resize width after uploading image, $resize_image must be true; default: *1000*
+-   `$_settings` - array containing the settings of website, from config table; default: *array of settings*
+-   `$_mail_switch` - bool value switch to send emails through aws or default email; default: *true: will send emails through aws*
+
 ---
 ### Functions and Definitions
-These are the private/protected functions available for use:
--   `_send` - Send Function takes the private variables already set and **sends** the email. The Email Server Configuration settings are stored in this function
-    -   param *void*
-    -   returns bool, *true* if the mail was sent
--   `_view` - Function to call view inside each function, the name of **view** template will be same as the function name itself.
-    -   param `$custom_view_template` for over-riding the `__FUNCTION__` name as template. 
-    -   Sets value of `$_view` after concatenating default view directory with template name
-    -   returns *void*
--   `_to_user` - Custom Function to set `$_mail_to` from `$user_id`. Uses `$_user_table`, `$_user_id_column` and `$_user_email_column`
-    -   param `$user_id`
-    -   returns *void*
--   `_to_admin` - Custom Function to set `$_mail_to` from `$admin_id`. Uses `$_admin_table`, `$_admin_id_column` and `$_admin_email_column`
-    -   param `$admin_id`
-    -   returns *void*
--   `_to_developer` - Custom Function to set `$_mail_to` to developer while being in testing or development phase.
-    -   param *void*
-    -   returns *void*
--   `_to_enabled_admins` - Custom Function to send email to all admins who are enabled in the notifications panel. Pre-requisite 'Admin_notification System'
-    -   param *void*
-    -   returns *void*
--   `show` - Function to show any error or missing value encountered while testing
-    -   param *string*
-    -   returns *void*
+These are the public functions available for use:
+
+-   `cli_only` - Checks if a request is made from cli or web, returns not_found() if called from web
+    -   usage: `$this->helper_model->cli_only();`
+
+-   `settings` - Fetching data from config table of database
+    -   usage: `$this->helper_model->settings('sitename');`
+
+
+-   `config_list` - returns the configuration table from the database as an associative array
+    -   usage: `$settings = $this->helper_model->config_list();`
+
+
+-   `upload_file_s3` - uploads a file to amazon s3 bucket, requires `aws_helper.php`
+    -   usage: 
+	```
+	$path = 'relative\path\for\upload\after\bucket';
+	$name = 'file'; 		//	the input name from html
+	$key = null;			//	as the file is not an array
+	$image = false;			//	do not resize the image
+	
+	$upload = $this->helper_model->upload_file_s3($path, $name, $key, $image);
+	if($upload){
+		echo "file uploaded successfully";
+	}else{
+		echo "file could not be uploaded";
+	}
+
+	```
+
+
+-   `upload_file` - uploads a file to your server
+    -   usage: 
+	```
+	$path = 'relative\path\for\upload\after\base_url';
+	$name = 'file'; 		//	the input name from html
+	$key = null;			//	as the file is not an array
+	
+	$upload = $this->helper_model->upload_file($path, $name, $key, $image);
+	if($upload){
+		echo "file uploaded successfully";
+	}else{
+		echo "file could not be uploaded";
+	}
+
+	```
+
+
+-   `alert` - to display alert if available in the flashdata, place this function where you want to show alert messages, in html;  *Is used while redirecting with a message*
+    -   usage: `$this->helper_model->alert();`
+
+
+-   `display_alert` - to display alert in html with the parameters passed, uses bootstrap for styling;
+    -   usage: 
+	```
+	$message	=	"Unauthorised Access";
+	$type		=	"danger";
+	$icon		=	"exclamation-triangle";
+	
+	$this->helper_model->display_alert( $message, $type, $icon);
+	```
+
+-   `redirect_msg` - redirect to a 'url' with a alert with the parameters passed
+    -   usage: 
+	```
+	$message	=	"Unauthorised Access";
+	$type		=	"danger";
+	$url		=	"login";
+	
+	$this->helper_model->redirect_msg( $message, $type, $url);
+	
+	// Will redirect to www.example.com/login, with an alert in the alert
+	```
+
+
+-   `send_formatted_mail` - public function to send mail, called from send_fromatted mail
+    -   usage: 
+	```
+	$data['name']		=	"Abhishek Jain";
+	$data['subject']	=	"Thank you for using helper_model";
+	$data['to']			=	"jazeabby@gmail.com";
+	$data['from']		=	"jazeabby@gmail.com";
+	$data['message']	=	"Hi, Nice to meet you";
+	
+	$this->helper_model->send_formatted_mail( $data);
+	
+	```
+
+
+-   `image_resize` - public function to send mail, called from send_fromatted mail
+    -   usage: 
+	```
+	$upload_path		=	'path/to/the/image.jpg';
+	$width				=	640;
+	
+	$this->helper_model->image_resize( $upload_path, $width);
+	
+	```
+
 
 ---
 ### Usage in Functions
