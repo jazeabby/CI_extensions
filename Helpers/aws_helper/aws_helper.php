@@ -14,10 +14,6 @@
         return $params;
     }
 
-    //		old credentials were not working
-    
-	//   'key' 		=> '',
-	//   'secret' 	=> '',
 
     /**
      * Retrieve list of object from given path on s3 bucket
@@ -25,8 +21,7 @@
      * @param path strong
      * @return file_list array
      * 
-     *  */
-
+     **/
     function s3_list_object($path='',$obj=null){
         $params = aws_credentials();
         $s3     = new \Aws\S3\S3Client($params); 
@@ -55,8 +50,8 @@
      * @param path string
      * @return result string
      * 
-     ***/
-    function s3_read_object($path=''){
+     **/
+    function s3_read_object( $path=''){
         $params     =   aws_credentials();
         $s3         =   new \Aws\S3\S3Client($params);
 
@@ -66,12 +61,12 @@
         ]);
 
         return $result;
-        
-
-
     }
 
-    function s3_upload_file($path,$sourceFile){
+    /**
+     * To upload files to S3
+     */
+    function s3_upload_file($path, $sourceFile){
         if(!file_exists($sourceFile)){
             log_message('error','ERROR unable to upload file to S3 as file '.$sourceFile.' does not exists');
             return false;
@@ -104,6 +99,9 @@
         }
     }
 
+    /**
+     * to check if the file exists on S3 bucket
+     */
     function s3_is_exist($location){
 
         $server = $_SERVER['SERVER_NAME'];
@@ -140,6 +138,9 @@
 		}
     }
 
+    /**
+     * To delete file from S3 bucket
+     */
     function s3_del_file($location){
 
         $params = aws_credentials();
@@ -167,7 +168,10 @@
 
     }
 
-    function aws_sms($msg,$mobile){
+    /**
+     * To use AWS SNS Functionality, to send a message to a number
+     */
+    function aws_sms($msg, $mobile){
         $params = aws_credentials();
         $sns    = new \Aws\Sns\SnsClient($params); 
         
@@ -194,103 +198,103 @@
         
     }
 
-    
-
-
+    /**
+     * To use AWS SES Functionality to send emails
+     */
     function send_ses($data,$attachment=NULL){
-    // Instantiate a new PHPMailer 
+        // Instantiate a new PHPMailer 
 
-    $mail = new PHPMailer\PHPMailer\PHPMailer;
+        $mail = new PHPMailer\PHPMailer\PHPMailer;
 
-    // Tell PHPMailer to use SMTP
-    $mail->isSMTP();
+        // Tell PHPMailer to use SMTP
+        $mail->isSMTP();
 
-    // Replace sender@example.com with your "From" address. 
-    // This address must be verified with Amazon SES.
+        // Replace sender@example.com with your "From" address. 
+        // This address must be verified with Amazon SES.
 
-    $mail->setFrom(strtolower($data['from']), $data['name']);
+        $mail->setFrom(strtolower($data['from']), $data['name']);
 
-    // Replace recipient@example.com with a "To" address. If your account 
-    // is still in the sandbox, this address must be verified.
-    // Also note that you can include several addAddress() lines to send
-    // email to multiple recipients.
+        // Replace recipient@example.com with a "To" address. If your account 
+        // is still in the sandbox, this address must be verified.
+        // Also note that you can include several addAddress() lines to send
+        // email to multiple recipients.
 
-    $mail->addAddress($data['to'], 'You');
+        $mail->addAddress($data['to'], 'You');
 
-    // Replace smtp_username with your Amazon SES SMTP user name.
-    $mail->Username = '';
+        // Replace smtp_username with your Amazon SES SMTP user name.
+        $mail->Username = '';
 
-    // Replace smtp_password with your Amazon SES SMTP password.
-    $mail->Password = '';
+        // Replace smtp_password with your Amazon SES SMTP password.
+        $mail->Password = '';
+            
+        // Specify a configuration set. If you do not want to use a configuration
+        // set, comment or remove the next line.
+
+        //$mail->addCustomHeader('X-SES-CONFIGURATION-SET', 'ConfigSet');
         
-    // Specify a configuration set. If you do not want to use a configuration
-    // set, comment or remove the next line.
+        // If you're using Amazon SES in a region other than US West (Oregon), 
+        // replace email-smtp.us-east-2.amazonaws.com with the Amazon SES SMTP  
+        // endpoint in the appropriate region.
+        $mail->Host = '';
 
-    //$mail->addCustomHeader('X-SES-CONFIGURATION-SET', 'ConfigSet');
-    
-    // If you're using Amazon SES in a region other than US West (Oregon), 
-    // replace email-smtp.us-east-2.amazonaws.com with the Amazon SES SMTP  
-    // endpoint in the appropriate region.
-    $mail->Host = '';
+        // The subject line of the email
+        $mail->Subject = $data['subject'];
 
-    // The subject line of the email
-    $mail->Subject = $data['subject'];
+        // The HTML-formatted body of the email
+        $mail->Body = $data['message'];
 
-    // The HTML-formatted body of the email
-    $mail->Body = $data['message'];
-
-    //Add attachments one by one
-    if($attachment!=NULL){
-			if(!is_array($attachment)){
-                if(file_exists($attachment)):
-                    $mail->addStringAttachment(file_get_contents($attachment), basename($attachment));
-                endif;
-			}else{
-				foreach($attachment as $key => $attach){
-                    if(file_exists($attach)):
-                        $mail->addStringAttachment(file_get_contents($attach), basename($attach));
+        //Add attachments one by one
+        if($attachment!=NULL){
+                if(!is_array($attachment)){
+                    if(file_exists($attachment)):
+                        $mail->addStringAttachment(file_get_contents($attachment), basename($attachment));
                     endif;
-				}
-			}
-		}
-    
-    // Tells PHPMailer to use SMTP authentication
-    
-    $mail->SMTPOptions = array(
-        'ssl' => array(
-        'verify_peer' => false,
-        'verify_peer_name' => false,
-        'allow_self_signed' => true
-        )
+                }else{
+                    foreach($attachment as $key => $attach){
+                        if(file_exists($attach)):
+                            $mail->addStringAttachment(file_get_contents($attach), basename($attach));
+                        endif;
+                    }
+                }
+            }
+        
+        // Tells PHPMailer to use SMTP authentication
+        
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer'       => false,
+                'verify_peer_name'  => false,
+                'allow_self_signed' => true
+            )
         );
-    
-    $mail->SMTPDebug = 0; 
+        
+        $mail->SMTPDebug = 0; 
 
-    $mail->SMTPAuth = true;
+        $mail->SMTPAuth = true;
 
-    // Enable TLS encryption over port 587
+        // Enable TLS encryption over port 587
 
-    $mail->SMTPSecure = 'tsl';
-    $mail->Port = 587;
-    
-    //$mail->SMTPSecure = 'ssl';
-    //$mail->Port = 465;    
-    //465; 
-    // Tells PHPMailer to send HTML-formatted email
-    $mail->isHTML(true);
+        $mail->SMTPSecure = 'tsl';
+        $mail->Port = 587;
+        
+        //$mail->SMTPSecure = 'ssl';
+        //$mail->Port = 465;    
+        //465; 
+        // Tells PHPMailer to send HTML-formatted email
+        $mail->isHTML(true);
 
-    // The alternative email body; this is only displayed when a recipient
-    // opens the email in a non-HTML email client. The \r\n represents a 
-    // line break.
+        // The alternative email body; this is only displayed when a recipient
+        // opens the email in a non-HTML email client. The \r\n represents a 
+        // line break.
 
-    // $mail->AltBody = "Email Test\r\nThis email was sent through the 
-    //     Amazon SES SMTP interface using the PHPMailer class.";
-    // var_dump($mail->send());
+        // $mail->AltBody = "Email Test\r\nThis email was sent through the 
+        //     Amazon SES SMTP interface using the PHPMailer class.";
+        // var_dump($mail->send());
 
 
-    if(!$mail->send()) {
-        return $mail->ErrorInfo;
-    } else {
-        return "sent";
+        if(!$mail->send()) {
+            return $mail->ErrorInfo;
+        } else {
+            return "sent";
+        }
     }
-  }
